@@ -1,0 +1,47 @@
+- hosts: htpcserver
+  become: yes
+  tasks:
+    - name: Install software-properties-common
+      apt: 
+        state: present
+        update_cache: yes
+        name:
+          - software-properties-common
+    - name: Add apt-repository for kodi
+      apt_repository:
+        repo: ppa:team-xbmc/ppa
+    - name: Install required packages
+      apt: 
+        state: present
+        update_cache: yes
+        name:
+          - kodi
+          - xauth
+          - xorg
+          - xinit
+          - xserver-xorg-core
+          - xserver-xorg
+          - xserver-common
+    - name: Add 'kodi' user
+      user:
+        name: kodi
+        password_lock: yes
+        shell: /usr/bin/nologin
+        home: /var/lib/kodi
+        groups: audio,video
+    - name: Create .kodi directory
+      file:
+        path: /var/lib/kodi/.kodi
+        state: directory
+        owner: kodi
+        group: kodi
+    - name: Deploy kodi.service file
+      copy:
+        src: files/kodi.service
+        dest: /etc/systemd/system/kodi.service
+    - name: Enable kodi service
+      service:
+        name: kodi
+        enabled: yes
+        state: started
+
